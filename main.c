@@ -21,24 +21,8 @@ int main(void){
     int* pos_xy = (int*) malloc(2*sizeof(int));
 
     all_grids = setup(GRIDSIZE, MINES);
-    //grid = all_grids[0];
 
-    // test by printing the grid
-    /*for(i = 0; i < GRIDSIZE; i++){
-        printf("\t%d", i);
-    }
-    printf("\n  __________________________________________________________________________________\n");
-    for(i = 0; i < GRIDSIZE; i++){
-        printf("%d |\t", i);
-        for(j = 0; j < GRIDSIZE; j++){
-            printf("%d\t", grid[i][j]);
-        }
-        printf("\n  |\n");
-    }
-    */
-    print_screen(all_grids, GRIDSIZE);
     gameloop(all_grids, pos_xy, GRIDSIZE, MINES);
-
     cleanup(all_grids, pos_xy, GRIDSIZE);
 
     return 0;

@@ -13,7 +13,7 @@
 */
 int*** setup(int size, int num_mines){
     int i, j, x, y;
-
+    system("printf '\e[8;30;100t'");
     // set up bottom grid where mines exist
     int** grid = makeGrid(size);
     int** grid_top = makeGridTop(size);
@@ -36,18 +36,9 @@ int** makeGrid(int size){
     int i, j;
     int** grid = (int**) malloc(size * sizeof(int*));
     for(i = 0; i < size; i++){
-        grid[i] = (int*) malloc(size * sizeof(int));
-        for(j = 0; j < size; j++){
-            grid[i][j] = 0;
-        }
+        grid[i] = (int*) calloc(size, sizeof(int));
     }
 
-    for(i = 0; i < size; i++){
-        grid[i] = (int*) malloc(size * sizeof(int));
-        for(j = 0; j < size; j++){
-            grid[i][j] = 0;
-        }
-    }
     return grid;
 }
 
@@ -62,10 +53,8 @@ int** makeGridTop(int size){
 
     int** grid_top = (int**) malloc(size * sizeof(int*));
     for(i = 0; i < size; i++){
-        grid_top[i] = (int*) malloc(size * sizeof(int));
-        for(j = 0; j < size; j++){
-            grid_top[i][j] = 0; // false - doesn't show grid
-        }
+        // clear allocate - puts binary zeroes in allocated space
+        grid_top[i] = (int*) calloc(size, sizeof(int)); // clear allocate
     }
 
     return grid_top;

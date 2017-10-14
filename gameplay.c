@@ -20,18 +20,22 @@ void print_screen(int*** all_grids, int size){
     }
     printf("\n  |\n");
 
-
     for(i = 0; i < size; i++){
-        printf("%d |\t", i); //y labels
+        printf("%d |    ", i); //y labels
         for(j = 0; j < size; j++){
             if(grid_top[i][j] == 1){
-                printf("%d\t", grid[i][j]);
+                if(grid[i][j] == 0){
+                    printf("        ");
+                }
+                else {
+                    printf(" %d      ", grid[i][j]);
+                }
             }
             else if(grid_top[i][j] == 2){
-                printf("[ ]\t"); // flag planted
+                printf("[+]     "); // flag planted
             }
             else {
-                printf(".\t");
+                printf(" .      ");
             }
         }
         printf("\n  |\n");
@@ -43,7 +47,7 @@ int getInputs(int* pos_xy){
     int retval;
     char temp[10];
     char flag = 'c';
-    printf("Input x and y positions (x y): ");
+    printf("Input x and y positions, and f for flagging (x y f): ");
     fgets(temp, 10, stdin);
     retval = sscanf(temp, "%d %d %c", &pos_xy[0], &pos_xy[1], &flag) - 2;
     return retval;
@@ -53,8 +57,8 @@ void updateTop(int*** all_grids, int x, int y, int size) {
     int** grid_top = all_grids[1];
     int** grid = all_grids[0];
 
+    //check if everything around it is 0
     if(grid[y][x] == 0 && grid_top[y][x] == 0){
-        // check if surrounding is
         grid_top[y][x] = 1;
 
         // update all 0's recursively
@@ -100,8 +104,37 @@ void updateTop(int*** all_grids, int x, int y, int size) {
 }
 
 // returns the number of flags around it
-int checkFlag(int** grid, int x, int y, int size){
+int checkFlag(int** grid_top, int x, int y, int size){
     int flag = 0;
+
+    if(y > 0){
+        if(x > 0 && grid_top[y-1][x-1] == 2){
+            flag++;
+        }
+        if(x < size-1 && grid_top[y-1][x+1] == 2){
+            flag++;
+        }
+        if(grid_top[y-1][x] == 2){
+            flag++;
+        }
+    }
+    if(y < size-1){
+        if(x > 0 && grid_top[y+1][x-1] == 2){
+            flag++;
+        }
+        if(x < size-1 && grid_top[y+1][x+1] == 2){
+            flag++;
+        }
+        if(grid_top[y+1][x] == 2){
+            flag++;
+        }
+    }
+    if(x > 0 && grid_top[y][x-1] == 2){
+        flag++;
+    }
+    if(x < size-1 && grid_top[y][x+1] == 2){
+        flag++;
+    }
 
     return flag;
 }
@@ -154,6 +187,7 @@ void gameloop(int*** all_grids, int* pos_xy, int size, int mines){
         // check if user won
         if(checkwin(grid_top, size, mines)){
             flag = 0;
+            print_screen(all_grids, size);
             printf("\nYou won!\n");
         }
     }
