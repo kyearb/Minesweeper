@@ -58,49 +58,99 @@ void updateTop(int*** all_grids, int x, int y, int size) {
     int** grid = all_grids[0];
 
     //check if everything around it is 0
-    if(grid[y][x] == 0 && grid_top[y][x] == 0){
+    if(grid_top[y][x] == 0){
         grid_top[y][x] = 1;
 
-        // update all 0's recursively
-        if(y > 0){
+        if(grid[y][x] == 0){
+            // update all 0's recursively
+            if(y > 0){
+                if(x > 0){
+                    updateTop(all_grids, x-1, y-1, size);
+                }
+                if(x < size-1){
+                    updateTop(all_grids, x+1, y-1, size);
+                }
+                updateTop(all_grids, x, y-1, size);
+            }
+            if(y < size-1){
+                if(x > 0){
+                    updateTop(all_grids, x-1, y+1, size);
+                }
+                if(x < size-1){
+                    updateTop(all_grids, x+1, y+1, size);
+                }
+                updateTop(all_grids, x, y+1, size);
+            }
             if(x > 0){
-                updateTop(all_grids, x-1, y-1, size);
+                updateTop(all_grids, x-1, y, size);
             }
             if(x < size-1){
-                updateTop(all_grids, x+1, y-1, size);
+                updateTop(all_grids, x+1, y, size);
             }
-            updateTop(all_grids, x, y-1, size);
-        }
-        if(y < size-1){
-            if(x > 0){
-                updateTop(all_grids, x-1, y+1, size);
-            }
-            if(x < size-1){
-                updateTop(all_grids, x+1, y+1, size);
-            }
-            updateTop(all_grids, x, y+1, size);
-        }
-        if(x > 0){
-            updateTop(all_grids, x-1, y, size);
-        }
-        if(x < size-1){
-            updateTop(all_grids, x+1, y, size);
         }
     }
-    // if it was another number, just update the top grid
-    else { //} if(grid_top[y][x] == 0){
-        grid_top[y][x] = 1;
-    }
-    // if user clicks on revealed number,
-    // check surrounding for bombs if flags are placed
-    /*
-    else if(grid_top[y][x] == 1 && grid[y][x] > 0){
-        if(grid[y][x] == checkFlag(grid, x, y, size)){
-            //reveal surroundings
-        }
-    }
-    */
 
+}
+
+int clearAround(int*** all_grids, int x, int y, int size){
+    int** grid = all_grids[0];
+    int** grid_top = all_grids[1];
+    int flag = 1;
+
+    if(y > 0){
+        if(x > 0 && grid_top[y-1][x-1] != 2){
+            grid_top[y-1][x-1] = 1;
+            if(grid[y-1][x-1] == -1){
+                flag = 0;
+            }
+        }
+        if(x < size-1 && grid_top[y-1][x+1] != 2){
+            grid_top[y-1][x+1] = 1;
+            if(grid[y-1][x+1] == -1){
+                flag = 0;
+            }
+        }
+        if(grid_top[y-1][x] != 2){
+            grid_top[y-1][x] = 1;
+            if(grid[y-1][x] == -1){
+                flag = 0;
+            }
+        }
+    }
+    if(y < size-1){
+        if(x > 0 && grid_top[y+1][x-1] != 2){
+            grid_top[y+1][x-1] = 1;
+            if(grid[y+1][x-1] == -1){
+                flag = 0;
+            }
+        }
+        if(x < size-1 && grid_top[y+1][x+1] != 2){
+            grid_top[y+1][x+1] = 1;
+            if(grid[y+1][x+1] == -1){
+                flag = 0;
+            }
+        }
+        if(grid_top[y+1][x] != 2){
+            grid_top[y+1][x] = 1;
+            if(grid[y+1][x] == -1){
+                flag = 0;
+            }
+        }
+    }
+    if(x > 0 && grid_top[y][x-1] != 2){
+        grid_top[y][x-1] = 1;
+        if(grid[y][x-1] == -1){
+            flag = 0;
+        }
+    }
+    if(x < size-1 && grid_top[y][x+1] != 2){
+        grid_top[y][x+1] = 1;
+        if(grid[y][x+1] == -1){
+            flag = 0;
+        }
+    }
+
+    return flag;
 }
 
 // returns the number of flags around it
@@ -178,14 +228,20 @@ void gameloop(int*** all_grids, int* pos_xy, int size, int mines){
             }
             if(grid[y][x] == -1) {
                 flag = 0;
-                printf("\nGame over\n");
+            }
+            else if(grid_top[y][x] == 1 && checkFlag(grid_top, x, y, size)){
+                flag = clearAround(all_grids, x, y, size);
             }
             else if(grid[y][x] >= 0){
                 updateTop(all_grids, x, y, size);
             }
         }
+        if(flag == 0){
+            print_screen(all_grids, size);
+            printf("\nGame over\n");
+        }
         // check if user won
-        if(checkwin(grid_top, size, mines)){
+        else if(checkwin(grid_top, size, mines)){
             flag = 0;
             print_screen(all_grids, size);
             printf("\nYou won!\n");
