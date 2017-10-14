@@ -37,7 +37,7 @@ int main(void){
     }
     */
     print_screen(all_grids, GRIDSIZE);
-    gameloop(all_grids, pos_xy, GRIDSIZE);
+    gameloop(all_grids, pos_xy, GRIDSIZE, MINES);
 
     cleanup(all_grids, pos_xy, GRIDSIZE);
 
