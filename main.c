@@ -8,35 +8,39 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include "setup.h"
+#include "gameplay.h"
 
 #define GRIDSIZE 10
 #define MINES 10
 
 int main(void){
     int i, j;
-    int** grid = (int**) malloc(GRIDSIZE * sizeof(int*));
-    for(i = 0; i < GRIDSIZE; i++){
-        grid[i] = (int*) malloc(GRIDSIZE * sizeof(int));
-        for(j = 0; j < GRIDSIZE; j++){
-            grid[i][j] = 0;
-        }
+    int*** all_grids;
+    int** grid;
+    int* pos_xy = (int*) malloc(2*sizeof(int));
+
+    all_grids = setup(GRIDSIZE, MINES);
+    //grid = all_grids[0];
+
+    // test by printing the grid
+    /*for(i = 0; i < GRIDSIZE; i++){
+        printf("\t%d", i);
     }
-
-    setup(&grid, GRIDSIZE, MINES);
-
+    printf("\n  __________________________________________________________________________________\n");
     for(i = 0; i < GRIDSIZE; i++){
+        printf("%d |\t", i);
         for(j = 0; j < GRIDSIZE; j++){
             printf("%d\t", grid[i][j]);
         }
-        printf("\n");
+        printf("\n  |\n");
     }
+    */
+    print_screen(all_grids, GRIDSIZE);
+    gameloop(all_grids, pos_xy, GRIDSIZE);
 
-    for(i=0; i < GRIDSIZE; i++){
-        free(grid[i]);
-    }
-    free(grid);
+    cleanup(all_grids, pos_xy, GRIDSIZE);
+
     return 0;
 }
 
