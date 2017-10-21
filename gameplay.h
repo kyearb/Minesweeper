@@ -1,10 +1,11 @@
 
 #pragma once
 
-void print_screen(int*** all_grids, int size);
-int getInputs(int* pos_xy);
-void updateTop(int*** all_grids, int x, int y, int size);
-int clearAround(int*** all_grids, int x, int y, int size);
-int checkFlag(int** grid_top, int x, int y, int size);
-int checkwin(int** grid_top, int size, int mines);
-void gameloop(int*** all_grids, int* pos_xy, int size, int mines);
+void print_screen(Grid* grid);
+int getInputs(Grid* grid);
+void updateTop(Grid* grid, int x, int y);
+int clearAround(Grid* grid, int x, int y);
+int checkFlag(Grid* grid, int x, int y);
+int checkwin(Grid* grid);
+void gameloop(Grid* grid);
+void startGame(int size, int mines);

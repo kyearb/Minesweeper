@@ -1,37 +1,36 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "gameplay.h"
+#include "setup_v2.h"
+#include "gameplay_v2.h"
 
-void print_screen(int*** all_grids, int size){
+void print_screen(Grid* grid){
     int i, j;
-    int** grid = all_grids[0];
-    int** grid_top = all_grids[1];
 
     //clear screen
     system("clear");
 
     //outside labels
-    for(i = 0; i < size; i++){
+    for(i = 0; i < grid->size; i++){
         printf("\t%d", i); // x labels
     }
     printf("\n  ___");
-    for(i = 0; i < size; i++){
+    for(i = 0; i < grid->size; i++){
         printf("________");
     }
     printf("\n  |\n");
 
-    for(i = 0; i < size; i++){
+    for(i = 0; i < grid->size; i++){
         printf("%d |    ", i); //y labels
-        for(j = 0; j < size; j++){
-            if(grid_top[i][j] == 1){
-                if(grid[i][j] == 0){
+        for(j = 0; j < grid->size; j++){
+            if(grid->top_grid[i][j] == 1){
+                if(grid->mine_grid[i][j] == 0){
                     printf("        ");
                 }
                 else {
-                    printf(" %d      ", grid[i][j]);
+                    printf(" %d      ", grid->mine_grid[i][j]);
                 }
             }
-            else if(grid_top[i][j] == 2){
+            else if(grid->top_grid[i][j] == 2){
                 printf("[+]     "); // flag planted
             }
             else {
@@ -42,210 +41,242 @@ void print_screen(int*** all_grids, int size){
     }
 }
 
-int getInputs(int* pos_xy){
+int getInputs(Grid* grid){
     // get user input from terminal x = 0, y = 1
-    int retval;
+    int retval, illegal_input = 1;
     char temp[10];
     char flag = 'c';
-    printf("Input x and y positions, and f for flagging (x y f): ");
-    fgets(temp, 10, stdin);
-    retval = sscanf(temp, "%d %d %c", &pos_xy[0], &pos_xy[1], &flag) - 2;
+    do{
+        printf("Input x and y positions, and f for flagging (x y f): ");
+        fgets(temp, 10, stdin);
+        retval = sscanf(temp, "%d %d %c", &(grid->x), &(grid->y), &flag) - 2;
+        if(grid->x >= 0 && grid->x < grid->size && grid->y >= 0 && grid->y < grid->size){
+            illegal_input = 0;
+        }
+        else{
+            printf("Error: Illegal input.\n");
+        }
+    } while(illegal_input);
     return retval;
 }
 
-void updateTop(int*** all_grids, int x, int y, int size) {
-    int** grid_top = all_grids[1];
-    int** grid = all_grids[0];
-
+void updateTop(Grid* grid, int x, int y) {
     //check if everything around it is 0
-    if(grid_top[y][x] == 0){
-        grid_top[y][x] = 1;
+    if(grid->top_grid[y][x] == 0){
+        grid->top_grid[y][x] = 1;
 
-        if(grid[y][x] == 0){
+        if(grid->mine_grid[y][x] == 0){
             // update all 0's recursively
             if(y > 0){
                 if(x > 0){
-                    updateTop(all_grids, x-1, y-1, size);
+                    updateTop(grid, x-1, y-1);
                 }
-                if(x < size-1){
-                    updateTop(all_grids, x+1, y-1, size);
+                if(x < grid->size-1){
+                    updateTop(grid, x+1, y-1);
                 }
-                updateTop(all_grids, x, y-1, size);
+                updateTop(grid, x, y-1);
             }
-            if(y < size-1){
+            if(y < grid->size-1){
                 if(x > 0){
-                    updateTop(all_grids, x-1, y+1, size);
+                    updateTop(grid, x-1, y+1);
                 }
-                if(x < size-1){
-                    updateTop(all_grids, x+1, y+1, size);
+                if(x < grid->size-1){
+                    updateTop(grid, x+1, y+1);
                 }
-                updateTop(all_grids, x, y+1, size);
+                updateTop(grid, x, y+1);
             }
             if(x > 0){
-                updateTop(all_grids, x-1, y, size);
+                updateTop(grid, x-1, y);
             }
-            if(x < size-1){
-                updateTop(all_grids, x+1, y, size);
+            if(x < grid->size-1){
+                updateTop(grid, x+1, y);
             }
         }
     }
-
+    return;
 }
 
-int clearAround(int*** all_grids, int x, int y, int size){
-    int** grid = all_grids[0];
-    int** grid_top = all_grids[1];
+int clearAround(Grid* grid, int x, int y){
     int flag = 1;
 
     if(y > 0){
-        if(x > 0 && grid_top[y-1][x-1] != 2){
-            grid_top[y-1][x-1] = 1;
-            if(grid[y-1][x-1] == -1){
+        if(x > 0 && grid->top_grid[y-1][x-1] != 2){
+            if(grid->mine_grid[y-1][x-1] == -1){
                 flag = 0;
             }
+            else if(grid->mine_grid[y-1][x-1] == 0){
+                updateTop(grid, x-1, y-1);
+            }
+            grid->top_grid[y-1][x-1] = 1;
         }
-        if(x < size-1 && grid_top[y-1][x+1] != 2){
-            grid_top[y-1][x+1] = 1;
-            if(grid[y-1][x+1] == -1){
+        if(x < grid->size-1 && grid->top_grid[y-1][x+1] != 2){
+            if(grid->mine_grid[y-1][x+1] == -1){
                 flag = 0;
             }
+            else if(grid->mine_grid[y-1][x+1] == 0){
+                updateTop(grid, x+1, y-1);
+            }
+            grid->top_grid[y-1][x+1] = 1;
         }
-        if(grid_top[y-1][x] != 2){
-            grid_top[y-1][x] = 1;
-            if(grid[y-1][x] == -1){
+        if(grid->top_grid[y-1][x] != 2){
+            if(grid->mine_grid[y-1][x] == -1){
                 flag = 0;
             }
-        }
-    }
-    if(y < size-1){
-        if(x > 0 && grid_top[y+1][x-1] != 2){
-            grid_top[y+1][x-1] = 1;
-            if(grid[y+1][x-1] == -1){
-                flag = 0;
+            else if(grid->mine_grid[y-1][x] == 0){
+                updateTop(grid, x, y-1);
             }
-        }
-        if(x < size-1 && grid_top[y+1][x+1] != 2){
-            grid_top[y+1][x+1] = 1;
-            if(grid[y+1][x+1] == -1){
-                flag = 0;
-            }
-        }
-        if(grid_top[y+1][x] != 2){
-            grid_top[y+1][x] = 1;
-            if(grid[y+1][x] == -1){
-                flag = 0;
-            }
+            grid->top_grid[y-1][x] = 1;
         }
     }
-    if(x > 0 && grid_top[y][x-1] != 2){
-        grid_top[y][x-1] = 1;
-        if(grid[y][x-1] == -1){
+    if(y < grid->size-1){
+        if(x > 0 && grid->top_grid[y+1][x-1] != 2){
+            if(grid->mine_grid[y+1][x-1] == -1){
+                flag = 0;
+            }
+            else if(grid->mine_grid[y+1][x-1] == 0){
+                updateTop(grid, x-1, y+1);
+            }
+            grid->top_grid[y+1][x-1] = 1;
+        }
+        if(x < grid->size-1 && grid->top_grid[y+1][x+1] != 2){
+            if(grid->mine_grid[y+1][x+1] == -1){
+                flag = 0;
+            }
+            else if(grid->mine_grid[y+1][x+1] == 0){
+                updateTop(grid, x+1, y+1);
+            }
+            grid->top_grid[y+1][x+1] = 1;
+        }
+        if(grid->top_grid[y+1][x] != 2){
+            if(grid->mine_grid[y+1][x] == -1){
+                flag = 0;
+            }
+            else if(grid->mine_grid[y+1][x] == 0){
+                updateTop(grid, x, y+1);
+            }
+            grid->top_grid[y+1][x] = 1;
+        }
+    }
+    if(x > 0 && grid->top_grid[y][x-1] != 2){
+        if(grid->mine_grid[y][x-1] == -1){
             flag = 0;
         }
+        else if(grid->mine_grid[y][x-1] == 0){
+            updateTop(grid, x-1, y);
+        }
+        grid->top_grid[y][x-1] = 1;
     }
-    if(x < size-1 && grid_top[y][x+1] != 2){
-        grid_top[y][x+1] = 1;
-        if(grid[y][x+1] == -1){
+    if(x < grid->size-1 && grid->top_grid[y][x+1] != 2){
+        if(grid->mine_grid[y][x+1] == -1){
             flag = 0;
         }
+        else if(grid->mine_grid[y][x+1] == 0){
+            updateTop(grid, x+1, y);
+        }
+        grid->top_grid[y][x+1] = 1;
     }
 
     return flag;
 }
 
 // returns the number of flags around it
-int checkFlag(int** grid_top, int x, int y, int size){
+int checkFlag(Grid* grid, int x, int y){
     int flag = 0;
 
     if(y > 0){
-        if(x > 0 && grid_top[y-1][x-1] == 2){
+        if(x > 0 && grid->top_grid[y-1][x-1] == 2){
             flag++;
         }
-        if(x < size-1 && grid_top[y-1][x+1] == 2){
+        if(x < grid->size-1 && grid->top_grid[y-1][x+1] == 2){
             flag++;
         }
-        if(grid_top[y-1][x] == 2){
-            flag++;
-        }
-    }
-    if(y < size-1){
-        if(x > 0 && grid_top[y+1][x-1] == 2){
-            flag++;
-        }
-        if(x < size-1 && grid_top[y+1][x+1] == 2){
-            flag++;
-        }
-        if(grid_top[y+1][x] == 2){
+        if(grid->top_grid[y-1][x] == 2){
             flag++;
         }
     }
-    if(x > 0 && grid_top[y][x-1] == 2){
+    if(y < grid->size-1){
+        if(x > 0 && grid->top_grid[y+1][x-1] == 2){
+            flag++;
+        }
+        if(x < grid->size-1 && grid->top_grid[y+1][x+1] == 2){
+            flag++;
+        }
+        if(grid->top_grid[y+1][x] == 2){
+            flag++;
+        }
+    }
+    if(x > 0 && grid->top_grid[y][x-1] == 2){
         flag++;
     }
-    if(x < size-1 && grid_top[y][x+1] == 2){
+    if(x < grid->size-1 && grid->top_grid[y][x+1] == 2){
         flag++;
     }
 
     return flag;
 }
 
-int checkwin(int** grid_top, int size, int mines){
+int checkwin(Grid* grid){
     int flag = 0, i, j, count = 0;
-    for(i = 0; i < size; i++){
-        for(j = 0; j < size; j++){
-            if(grid_top[i][j] == 1){
+    for(i = 0; i < grid->size; i++){
+        for(j = 0; j < grid->size; j++){
+            if(grid->top_grid[i][j] == 1){
                 count++;
             }
         }
     }
-    if(size*size-mines == count){
+    if(grid->size*grid->size-grid->mines == count){
         flag = 1;
     }
     return flag;
 }
 
-void gameloop(int*** all_grids, int* pos_xy, int size, int mines){
+void gameloop(Grid* grid){
 
     int flag = 1, x, y;
-    int** grid = all_grids[0];
-    int** grid_top = all_grids[1];
 
     while(flag){
-        print_screen(all_grids, size);
-        if(getInputs(pos_xy) && grid_top[pos_xy[1]][pos_xy[0]] != 1){ // if flag is triggered
-            if(grid_top[pos_xy[1]][pos_xy[0]] == 2){
-                grid_top[pos_xy[1]][pos_xy[0]] = 0;
+        print_screen(grid);
+        if(getInputs(grid) && grid->top_grid[grid->y][grid->x] != 1){ // if flag is triggered
+            if(grid->top_grid[grid->y][grid->x] == 2){
+                grid->top_grid[grid->y][grid->x] = 0;
+                grid->flags -= 1;
             }
             else{
-                grid_top[pos_xy[1]][pos_xy[0]] = 2;
+                grid->top_grid[grid->y][grid->x] = 2;
+                grid->flags += 1;
             }
         }
         else{
-            x = pos_xy[0];
-            y = pos_xy[1];
-            if(grid_top[y][x] == 2) {
-                continue;
-            }
-            if(grid[y][x] == -1) {
+            x = grid->x;
+            y = grid->y;
+            if(grid->mine_grid[y][x] == -1) {
                 flag = 0;
             }
-            else if(grid_top[y][x] == 1 && checkFlag(grid_top, x, y, size)){
-                flag = clearAround(all_grids, x, y, size);
+            else if(grid->top_grid[y][x] == 1 && checkFlag(grid, x, y)){
+                flag = clearAround(grid, x, y);
             }
-            else if(grid[y][x] >= 0){
-                updateTop(all_grids, x, y, size);
+            else if(grid->mine_grid[y][x] >= 0){
+                updateTop(grid, x, y);
             }
         }
         if(flag == 0){
-            print_screen(all_grids, size);
+            print_screen(grid);
             printf("\nGame over\n");
         }
         // check if user won
-        else if(checkwin(grid_top, size, mines)){
+        else if(checkwin(grid)){
             flag = 0;
-            print_screen(all_grids, size);
+            print_screen(grid);
             printf("\nYou won!\n");
         }
     }
+    return;
+}
 
+void startGame(int size, int mines){
+
+    Grid* grid = setup(size, mines);
+
+    gameloop(grid);
+    cleanup(grid);
 }

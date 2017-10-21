@@ -8,26 +8,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "setup.h"
-#include "gameplay.h"
+#include "setup_v2.h"
+#include "gameplay_v2.h"
 
 #define GRIDSIZE 10
 #define MINES 10
 
 int main(void){
-    int i, j;
-    int*** all_grids;
-    int** grid;
-    int* pos_xy = (int*) malloc(2*sizeof(int));
 
-    all_grids = setup(GRIDSIZE, MINES);
-
-    gameloop(all_grids, pos_xy, GRIDSIZE, MINES);
-    cleanup(all_grids, pos_xy, GRIDSIZE);
+    startGame(GRIDSIZE, MINES);
 
     return 0;
-}
-
-void runAll(void){
-
 }

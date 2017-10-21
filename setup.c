@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "setup.h"
+#include "setup_v2.h"
 
 /*  grid will be a square
     use two values in place of size to make grid a rectangle
@@ -11,19 +11,19 @@
     OUTPUT:
     grid - a pointer to a pointer
 */
-int*** setup(int size, int num_mines){
-    int i, j, x, y;
+Grid* setup(int size, int num_mines){
     system("printf '\e[8;30;100t'");
     // set up bottom grid where mines exist
-    int** grid = makeGrid(size);
-    int** grid_top = makeGridTop(size);
-    int*** all_grids = (int***) malloc(2*sizeof(int**));
-    all_grids[0] = grid;
-    all_grids[1] = grid_top;
-    // add mines to grid
-    grid = addMines(grid, size, num_mines);
 
-    return all_grids;
+    Grid* grid = (Grid*) malloc(sizeof(Grid));
+    grid->mine_grid = makeGrid(size);
+    grid->top_grid = makeGridTop(size);
+    grid->size = size;
+    grid->mines = num_mines;
+    grid->flags = 0;
+    addMines(grid);
+
+    return grid;
 }
 
 /*  makes grid for the mines
@@ -68,59 +68,57 @@ int** makeGridTop(int size){
     OUTPUT:
     grid - returns grid
 */
-int** addMines(int** grid, int size, int num_mines){
-    int i, j, x, y;
+void addMines(Grid* grid){
+    int i, j, x, y, size = grid->size;
     srand(time(NULL)); //randomizes mines a little bit
     // add mines in random locations
-    for(i = 0; i < num_mines; i++){
+
+    for(i = 0; i < grid->mines; i++){
         // random mine position without overlap
         do {
             x = rand() % 10;
             y = rand() % 10;
         }
-        while(grid[y][x] == -1);
+        while(grid->mine_grid[y][x] == -1);
 
         // add mine
-        grid[y][x] = -1;
+        grid->mine_grid[y][x] = -1;
 
         // increment elements around mine unless it is a mine
         // add try/catch here for illegal indexing
         for(j = -1; j < 2; j++){
             if(y+j >= 0 && y+j < size){
                 if(x-1 >= 0){
-                    if(grid[y+j][x-1] != -1){
-                        grid[y+j][x-1] += 1;
+                    if(grid->mine_grid[y+j][x-1] != -1){
+                        grid->mine_grid[y+j][x-1] += 1;
                     }
                 }
                 if(x+1 < size){
-                    if(grid[y+j][x+1] != -1){
-                        grid[y+j][x+1] += 1;
+                    if(grid->mine_grid[y+j][x+1] != -1){
+                        grid->mine_grid[y+j][x+1] += 1;
                     }
                 }
             }
         }
         if(y-1 >= 0){
-            if(grid[y-1][x] != -1){
-                grid[y-1][x] += 1;
+            if(grid->mine_grid[y-1][x] != -1){
+                grid->mine_grid[y-1][x] += 1;
             }
         }
         if(y+1 < size){
-            if(grid[y+1][x] != -1){
-                grid[y+1][x] += 1;
+            if(grid->mine_grid[y+1][x] != -1){
+                grid->mine_grid[y+1][x] += 1;
             }
         }
     }
-    return grid;
+    return;
 }
 
-void cleanup(int*** all_grids, int* pos_xy, int size){
+void cleanup(Grid* grid){
     int i;
-    for(i = 0; i < size; i++){
-        free(all_grids[0][i]);
-        free(all_grids[1][i]);
+    for(i = 0; i < grid->size; i++){
+        free(grid->mine_grid[i]);
+        free(grid->top_grid[i]);
     }
-    free(all_grids[0]);
-    free(all_grids[1]);
-    free(all_grids);
-    free(pos_xy);
+    free(grid);
 }
