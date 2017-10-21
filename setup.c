@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "setup_v2.h"
+#include "setup.h"
 
 /*  grid will be a square
     use two values in place of size to make grid a rectangle
@@ -21,7 +21,7 @@ Grid* setup(int size, int num_mines){
     grid->size = size;
     grid->mines = num_mines;
     grid->flags = 0;
-    addMines(grid);
+    //addMines(grid);
 
     return grid;
 }
@@ -69,7 +69,7 @@ int** makeGridTop(int size){
     grid - returns grid
 */
 void addMines(Grid* grid){
-    int i, j, x, y, size = grid->size;
+    int i, j, x, y;
     srand(time(NULL)); //randomizes mines a little bit
     // add mines in random locations
 
@@ -79,7 +79,18 @@ void addMines(Grid* grid){
             x = rand() % 10;
             y = rand() % 10;
         }
-        while(grid->mine_grid[y][x] == -1);
+        while(grid->mine_grid[y][x] == -1 || (
+            // continue to find random position while x,y is on or around user input
+            (x-1 == grid->x && y-1 == grid->y) ||
+            ( x  == grid->x && y-1 == grid->y) ||
+            (x+1 == grid->x && y-1 == grid->y) ||
+            (x-1 == grid->x &&  y  == grid->y) ||
+            ( x  == grid->x &&  y  == grid->y) ||
+            (x+1 == grid->x &&  y  == grid->y) ||
+            (x-1 == grid->x && y+1 == grid->y) ||
+            ( x  == grid->x && y+1 == grid->y) ||
+            (x+1 == grid->x && y+1 == grid->y)
+            ) );
 
         // add mine
         grid->mine_grid[y][x] = -1;
@@ -87,13 +98,13 @@ void addMines(Grid* grid){
         // increment elements around mine unless it is a mine
         // add try/catch here for illegal indexing
         for(j = -1; j < 2; j++){
-            if(y+j >= 0 && y+j < size){
+            if(y+j >= 0 && y+j < grid->size){
                 if(x-1 >= 0){
                     if(grid->mine_grid[y+j][x-1] != -1){
                         grid->mine_grid[y+j][x-1] += 1;
                     }
                 }
-                if(x+1 < size){
+                if(x+1 < grid->size){
                     if(grid->mine_grid[y+j][x+1] != -1){
                         grid->mine_grid[y+j][x+1] += 1;
                     }
@@ -105,7 +116,7 @@ void addMines(Grid* grid){
                 grid->mine_grid[y-1][x] += 1;
             }
         }
-        if(y+1 < size){
+        if(y+1 < grid->size){
             if(grid->mine_grid[y+1][x] != -1){
                 grid->mine_grid[y+1][x] += 1;
             }

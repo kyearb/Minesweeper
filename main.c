@@ -8,8 +8,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "setup_v2.h"
-#include "gameplay_v2.h"
+#include "setup.h"
+#include "gameplay.h"
 
 #define GRIDSIZE 10
 #define MINES 10

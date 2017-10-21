@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "setup_v2.h"
-#include "gameplay_v2.h"
+#include "setup.h"
+#include "gameplay.h"
 
 void print_screen(Grid* grid){
     int i, j;
@@ -25,6 +25,9 @@ void print_screen(Grid* grid){
             if(grid->top_grid[i][j] == 1){
                 if(grid->mine_grid[i][j] == 0){
                     printf("        ");
+                }
+                else if(grid->mine_grid[i][j] == -1){
+                    printf(" #      ");
                 }
                 else {
                     printf(" %d      ", grid->mine_grid[i][j]);
@@ -230,53 +233,57 @@ int checkwin(Grid* grid){
     return flag;
 }
 
-void gameloop(Grid* grid){
+int gameloop(Grid* grid, int* first){
 
     int flag = 1, x, y;
 
-    while(flag){
-        print_screen(grid);
-        if(getInputs(grid) && grid->top_grid[grid->y][grid->x] != 1){ // if flag is triggered
-            if(grid->top_grid[grid->y][grid->x] == 2){
-                grid->top_grid[grid->y][grid->x] = 0;
-                grid->flags -= 1;
-            }
-            else{
-                grid->top_grid[grid->y][grid->x] = 2;
-                grid->flags += 1;
-            }
+    print_screen(grid);
+    if(getInputs(grid) && grid->top_grid[grid->y][grid->x] != 1){ // if flag is triggered
+        if(grid->top_grid[grid->y][grid->x] == 2){
+            grid->top_grid[grid->y][grid->x] = 0;
+            grid->flags -= 1;
         }
         else{
-            x = grid->x;
-            y = grid->y;
-            if(grid->mine_grid[y][x] == -1) {
-                flag = 0;
-            }
-            else if(grid->top_grid[y][x] == 1 && checkFlag(grid, x, y)){
-                flag = clearAround(grid, x, y);
-            }
-            else if(grid->mine_grid[y][x] >= 0){
-                updateTop(grid, x, y);
-            }
-        }
-        if(flag == 0){
-            print_screen(grid);
-            printf("\nGame over\n");
-        }
-        // check if user won
-        else if(checkwin(grid)){
-            flag = 0;
-            print_screen(grid);
-            printf("\nYou won!\n");
+            grid->top_grid[grid->y][grid->x] = 2;
+            grid->flags += 1;
         }
     }
-    return;
+    else{
+        if(*first){
+            addMines(grid);
+            *first = 0;
+        }
+        x = grid->x;
+        y = grid->y;
+        if(grid->mine_grid[y][x] == -1) {
+            flag = 0;
+            grid->top_grid[y][x] = 1;
+        }
+        else if(grid->top_grid[y][x] == 1 && checkFlag(grid, x, y)){
+            flag = clearAround(grid, x, y);
+        }
+        else if(grid->mine_grid[y][x] >= 0){
+            updateTop(grid, x, y);
+        }
+    }
+    if(flag == 0){
+        print_screen(grid);
+        printf("\nGame over\n");
+    }
+    // check if user won
+    else if(checkwin(grid)){
+        flag = 0;
+        print_screen(grid);
+        printf("\nYou won!\n");
+    }
+
+    return flag;
 }
 
 void startGame(int size, int mines){
-
+    int first = 1;
     Grid* grid = setup(size, mines);
 
-    gameloop(grid);
+    while(gameloop(grid, &first));
     cleanup(grid);
 }

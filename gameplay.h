@@ -7,5 +7,5 @@ void updateTop(Grid* grid, int x, int y);
 int clearAround(Grid* grid, int x, int y);
 int checkFlag(Grid* grid, int x, int y);
 int checkwin(Grid* grid);
-void gameloop(Grid* grid);
+int gameloop(Grid* grid, int* first);
 void startGame(int size, int mines);
