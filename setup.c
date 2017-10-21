@@ -124,12 +124,19 @@ void addMines(Grid* grid){
     }
     return;
 }
-
+ /* frees all allocated memory
+    INPUT:
+    grid - grid struct holding information about the grid
+    OUTPUT:
+    void
+ */
 void cleanup(Grid* grid){
     int i;
     for(i = 0; i < grid->size; i++){
         free(grid->mine_grid[i]);
         free(grid->top_grid[i]);
     }
+    free(grid->mine_grid);
+    free(grid->top_grid);
     free(grid);
 }
