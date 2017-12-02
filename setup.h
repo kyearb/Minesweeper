@@ -1,5 +1,6 @@
 
-#pragma once
+#ifndef SETUP_H_
+#define SETUP_H_
 
 typedef struct grid{
     int** mine_grid;
@@ -17,3 +18,5 @@ int** makeGrid(int size);
 int** makeGridTop(int size);
 void addMines(Grid* grid);
 void cleanup(Grid* grid);
+
+#endif

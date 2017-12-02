@@ -19,30 +19,32 @@ void print_screen(Grid* grid){
     for(i = 0; i < grid->size; i++){
         printf("\t%d", i); // x labels
     }
+    // print horizontal line
     printf("\n  ___");
     for(i = 0; i < grid->size; i++){
         printf("________");
     }
     printf("\n  |\n");
 
+    // print rest of screen
     for(i = 0; i < grid->size; i++){
         printf("%d |    ", i); //y labels
         for(j = 0; j < grid->size; j++){
             if(grid->top_grid[i][j] == 1){
                 if(grid->mine_grid[i][j] == 0){
-                    printf("        ");
+                    printf("        "); // print blank if there are no bombs around it
                 }
                 else if(grid->mine_grid[i][j] == -1){
-                    printf(" #      ");
+                    printf(" #      "); // print bomb
                 }
-                else {
+                else { // print number
                     printf(" %d      ", grid->mine_grid[i][j]);
                 }
             }
             else if(grid->top_grid[i][j] == 2){
                 printf("[+]     "); // flag planted
             }
-            else {
+            else { // print if grid is hidden
                 printf(" .      ");
             }
         }
@@ -63,10 +65,12 @@ int getInputs(Grid* grid){
     char flag = 'c';
     do{
         printf("Input x and y positions, and f for flagging (x y f): ");
-        fgets(temp, 10, stdin);
+        fgets(temp, 10, stdin); // get user input
+        // scan values, store number of items read -2
         retval = sscanf(temp, "%d %d %c", &(grid->x), &(grid->y), &flag) - 2;
+        // check for illegal inputs (out of bounds)
         if(grid->x >= 0 && grid->x < grid->size && grid->y >= 0 && grid->y < grid->size){
-            illegal_input = 0;
+            illegal_input = 0; // if legal
         }
         else{
             printf("Error: Illegal input.\n");
@@ -303,7 +307,7 @@ int gameloop(Grid* grid, int* first){
         }
         x = grid->x;
         y = grid->y;
-        if(grid->mine_grid[y][x] == -1) {
+        if(grid->mine_grid[y][x] == -1 && grid->top_grid[y][x] != 2) {
             flag = 0;
             grid->top_grid[y][x] = 1;
         }
@@ -320,9 +324,10 @@ int gameloop(Grid* grid, int* first){
     }
     // check if user won
     else if(checkwin(grid)){
-        flag = 0;
         print_screen(grid);
         printf("\nYou won!\n");
+
+
     }
 
     return flag;
@@ -333,12 +338,24 @@ int gameloop(Grid* grid, int* first){
     size - size of n by n grid
     mines - number of mines in the grid
     OUTPUT:
-    void 
+    void
 */
 void startGame(int size, int mines){
-    int first = 1;
-    Grid* grid = setup(size, mines);
+    int first;
+    char buffer[10];
+    char replay;
+    Grid* grid;
 
-    while(gameloop(grid, &first));
-    cleanup(grid);
+    do{
+        first = 1;
+        grid = setup(size, mines);
+        while(gameloop(grid, &first));
+        cleanup(grid);
+
+        printf("Play again? (y/n)\n");
+        // get user input then scan it
+        fgets(buffer, 10, stdin);
+        sscanf(buffer, "%c", &replay);
+
+    } while(replay == 'y' || replay == 'Y');
 }
